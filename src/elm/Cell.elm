@@ -33,32 +33,40 @@ flipCell cell cells =
 
 
 updateCells : Int -> Int -> Set Cell -> Set Cell
-updateCells length width =
-    updateCellsBetween ( 0, 0 ) ( length, width )
+updateCells width height =
+    updateCellsBetween ( 0, 0 ) ( width, height )
+
+
+
+-- PROBLEM: Each cell update passes the updated cell-set to the next update,
+-- when they all need to use the old one :/
 
 
 updateCellsBetween : Cell -> Cell -> Set Cell -> Set Cell
 updateCellsBetween c1 c2 cells =
     cellSet c1 c2
-        |> Set.foldr updateCell cells
+        |> Set.foldr (updateCell cells) cells
 
 
-updateCell : Cell -> Set Cell -> Set Cell
-updateCell cell cells =
+{-| Given the cell-set from last tick, and the cell-set being built,
+Updates the new cell-set with this cell's living status.
+-}
+updateCell : Set Cell -> Cell -> Set Cell -> Set Cell
+updateCell oldCells cell newCells =
     let
         living =
-            alive cell cells
+            alive cell oldCells
 
         neighbors =
-            countNeighbors cell cells
+            countNeighbors cell oldCells
 
         willAdd =
             willLive living neighbors
     in
     if willAdd then
-        Set.insert cell cells
+        Set.insert cell newCells
     else
-        Set.remove cell cells
+        Set.remove cell newCells
 
 
 countNeighbors : Cell -> Set Cell -> Int
@@ -106,7 +114,7 @@ willLive living =
 
 willLiveLiving : Int -> Bool
 willLiveLiving neighbors =
-    List.member neighbors (List.range 2 4)
+    List.member neighbors (List.range 2 3)
 
 
 willLiveDead : Int -> Bool
